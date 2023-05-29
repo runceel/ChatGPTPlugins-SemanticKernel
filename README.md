@@ -85,3 +85,7 @@
 - TodoPlugin プロジェクトを実行する
   - dotnet run による実行かデバッグ無しで開始して起動しっぱなしにする
 - MyConsoleApp プロジェクトを実行する
+
+## API Key 認証にしたい
+
+`MyConsoleApp\Program.cs` の中に 2 箇所ある `new AzureCliCredential()` を API Key の文字列に置き換えてください。
