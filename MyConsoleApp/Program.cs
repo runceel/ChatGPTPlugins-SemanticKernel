@@ -1,15 +1,31 @@
 ﻿using Azure.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.CoreSkills;
 using MyConsoleApp;
+
+var configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json", optional: false)
+    .AddUserSecrets<Program>()
+    .Build();
+
+var endpoint = configuration.GetValue<string>("Endpoint");
+var deployName = configuration.GetValue<string>("DeployName");
+
+if (string.IsNullOrWhiteSpace(endpoint) || !endpoint.StartsWith("https://") || string.IsNullOrWhiteSpace(deployName))
+{
+    Console.WriteLine("appsettings.json の Endpoint と DeployName を設定してください。");
+    Console.WriteLine($"現在の値: Endpoint = {endpoint}, DeployName = {deployName}");
+    return;
+}
 
 // Chat のやりとりをするためのカーネルを作成
 var chatKernel = Kernel.Builder
     .Configure(conf =>
     {
         conf.AddAzureChatCompletionService(
-            "gpt-35-turbo",
-            "https://ai-kazuki.openai.azure.com/",
+            deployName,
+            endpoint,
             new AzureCliCredential());
     })
     .Build();
@@ -19,7 +35,7 @@ chatKernel.ImportSkill(new TimeSkill(), "time");
 
 // ユーザーの意図を汲み取るセマンティック関数を作成
 var detectUserIntentFunction = chatKernel.CreateSemanticFunction("""
-    あなたは、以下のチャットの履歴を読んでユーザーの最後のメッセージの時点でユーザーがお願いしたいと思っていることを書いてください。
+    あなたは、以下のチャットの履歴を読んでユーザーの最後のメッセージの時点でユーザーが達成したいと思っていることを書いてください。。
     ユーザーがお願いしたいことはチャット履歴と参考情報から読み取って、やりたいことをするために必要な全ての情報を含めた文章にしてください。
     その文章を読むだけで、やらなければいけないことや、必要な情報が全てわかるようにしてください。
     チャット履歴に無いことは含めないでください。
@@ -32,7 +48,7 @@ var detectUserIntentFunction = chatKernel.CreateSemanticFunction("""
     ### チャット履歴
     {{$input}}
 
-    ### ユーザーがお願いしたいこと
+    ### ユーザーが達成したいと思っていること
     
     """);
 
@@ -45,6 +61,7 @@ var generateAssistantMessageFunction = chatKernel.CreateSemanticFunction("""
 
     ### 参考情報
     - 今日の日付: {{time.Today}}
+    - ユーザーの意図: {{$userIntent}}
     - {{AppPlugin.Call $userIntent}}
 
     ### チャット履歴
@@ -59,8 +76,8 @@ var pluginKernel = Kernel.Builder
     .Configure(conf =>
     {
         conf.AddAzureChatCompletionService(
-            "gpt-35-turbo",
-            "https://ai-kazuki.openai.azure.com/",
+            deployName,
+            endpoint,
             new AzureCliCredential());
     })
     .Build();
