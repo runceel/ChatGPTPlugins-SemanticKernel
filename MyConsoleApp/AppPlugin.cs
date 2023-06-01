@@ -26,11 +26,11 @@ internal class AppPlugin
 
     [SKFunction("ChatGPT プラグインのなかから最適なものを選んで結果を返します。")]
     [SKFunctionName("Call")]
-    public async Task<string> CallAsync(SKContext context)
+    public async Task<string> CallAsync(string userIntent, SKContext context)
     {
         try
         {
-            var plan = await _planner.CreatePlanAsync(context.Result);
+            var plan = await _planner.CreatePlanAsync(userIntent);
             if (!plan.HasNextStep)
             {
                 return "";
