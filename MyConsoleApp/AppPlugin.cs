@@ -1,5 +1,4 @@
 ﻿using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.SkillDefinition;
 using System.Text.Json;
@@ -17,7 +16,7 @@ internal class AppPlugin
         return new AppPlugin(pluginKernel);
     }
 
-    private ActionPlanner _planner;
+    private readonly ActionPlanner _planner;
 
     public AppPlugin(IKernel pluginsKernel)
     {
@@ -26,7 +25,7 @@ internal class AppPlugin
 
     [SKFunction("ChatGPT プラグインのなかから最適なものを選んで結果を返します。")]
     [SKFunctionName("Call")]
-    public async Task<string> CallAsync(string userIntent, SKContext context)
+    public async Task<string> CallAsync(string userIntent)
     {
         try
         {
@@ -38,7 +37,7 @@ internal class AppPlugin
 
             var planResultContext = await plan.InvokeAsync();
             var planResult = JsonSerializer.Deserialize<PluginResult>(planResultContext.Result);
-            var lastStep = plan.Steps.Last();
+            var lastStep = plan.Steps[^1];
             return planResult != null ? $"""
                 {lastStep.SkillName}プラグインの{lastStep.Name}関数の実行結果(書式: {planResult.ContentType})
                 {planResult.Content}

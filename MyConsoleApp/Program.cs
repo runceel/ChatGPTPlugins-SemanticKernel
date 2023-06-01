@@ -21,13 +21,9 @@ if (string.IsNullOrWhiteSpace(endpoint) || !endpoint.StartsWith("https://") || s
 
 // Chat のやりとりをするためのカーネルを作成
 var chatKernel = Kernel.Builder
-    .Configure(conf =>
-    {
-        conf.AddAzureChatCompletionService(
-            deployName,
-            endpoint,
-            new AzureCliCredential());
-    })
+    .WithAzureChatCompletionService(deployName,
+        endpoint,
+        new AzureCliCredential())
     .Build();
 
 // 現在時刻を表示するための組み込みスキルを読み込み
@@ -74,13 +70,9 @@ var generateAssistantMessageFunction = chatKernel.CreateSemanticFunction("""
 
 // ChatGPT Plugins を読み込むための自作プラグインを登録
 var pluginKernel = Kernel.Builder
-    .Configure(conf =>
-    {
-        conf.AddAzureChatCompletionService(
-            deployName,
-            endpoint,
-            new AzureCliCredential());
-    })
+    .WithAzureChatCompletionService(deployName,
+        endpoint,
+        new AzureCliCredential())
     .Build();
 chatKernel.ImportSkill(await AppPlugin.CreateAsync(pluginKernel), "AppPlugin");
 
