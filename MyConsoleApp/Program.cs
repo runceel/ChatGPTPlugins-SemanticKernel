@@ -96,7 +96,7 @@ while (true)
     var context = chatKernel.CreateNewContext();
     context.Variables.Update(CreateChatHisotryMessages(chatHistory));
     var userIntent = await detectUserIntentFunction.InvokeAsync(context);
-    Console.WriteLine($"文脈を踏まえた上でのユーザーの意図: {userIntent.Result}");
+    Console.WriteLine($"AI によるユーザーの意図の解釈結果: {userIntent.Result}");
 
     // 汲み取った意図を元に ChatGPT Plugins からの情報を埋め込んだプロンプトで回答を生成
     var chatContext = chatKernel.CreateNewContext();
